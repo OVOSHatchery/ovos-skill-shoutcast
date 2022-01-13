@@ -2,11 +2,9 @@
 
 OCP skill for https://directory.shoutcast.com/
 
-
 ![](./gui.png)
 
-
-## Examples 
+## Examples
 
 * "play heavy metal radio"
 
@@ -32,15 +30,20 @@ OCP skill for https://directory.shoutcast.com/
 - `tag` - link to github release / branch / commit
 - `version` - link to release/commit of platform repo where this was tested
 
+## Credits
 
-## Credits 
 - JarbasAl
 
 ## Category
+
 **Entertainment**
 
 ## Tags
-#audio 
-#music
-#OCP
-#entertainment
+
+# audio
+
+# music
+
+# OCP
+
+# entertainment

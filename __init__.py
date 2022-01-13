@@ -3,8 +3,8 @@ from os.path import join, dirname
 import requests
 from ovos_utils.parse import fuzzy_match, MatchStrategy
 from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
-    MediaType, PlaybackType, ocp_search
-from shoutcast_api import get_stations_keywords
+    MediaType, PlaybackType, ocp_search, ocp_featured_media
+from shoutcast_api import get_stations_keywords, get_top_500
 
 
 class ShoutCastSkill(OVOSCommonPlaybackSkill):
@@ -25,8 +25,14 @@ class ShoutCastSkill(OVOSCommonPlaybackSkill):
                                          limit=limit, br=128)
         for s in response.station:
             data = s.__dict__
-            data[
-                "uri"] = f'http://yp.shoutcast.com/sbin/tunein-station.m3u?id={s.id}'
+            data["uri"] = f'http://yp.shoutcast.com/sbin/tunein-station.m3u?id={s.id}'
+            yield data
+
+    def get_featured_stations(self):
+        response = get_top_500(self.settings["api_key"])
+        for s in response.station:
+            data = s.__dict__
+            data["uri"] = f'http://yp.shoutcast.com/sbin/tunein-station.m3u?id={s.id}'
             yield data
 
     def calc_score(self, phrase, match, idx=0, base_score=0):
@@ -52,6 +58,36 @@ class ShoutCastSkill(OVOSCommonPlaybackSkill):
                     return uri
         except:
             pass
+
+    @ocp_featured_media()
+    def featured_media(self):
+        return [{
+            "media_type": MediaType.RADIO,
+            "uri": ch["uri"],
+            "playback": PlaybackType.AUDIO,
+            "image": ch.get("logo_url") or self.skill_icon,
+            "bg_image": ch.get("logo_url") or self.skill_icon,
+            "skill_icon": self.skill_icon,
+            "title": ch["name"],
+            "author": "Shoutcast",
+            "length": 0
+        } for ch in self.get_featured_stations() if ch.get("uri")]
+
+    @ocp_search()
+    def ocp_shoutcast_playlist(self, phrase):
+        phrase = self.remove_voc(phrase, "radio")
+        if self.voc_match(phrase, "shoutcast", exact=True):
+            yield {
+                "match_confidence": 100,
+                "media_type": MediaType.RADIO,
+                "playlist": self.featured_media(),
+                "playback": PlaybackType.AUDIO,
+                "skill_icon": self.skill_icon,
+                "image": self.skill_icon,
+                "bg_image": self.skill_icon,
+                "title": "Shoutcast (Top 500)",
+                "author": "Shoutcast"
+            }
 
     @ocp_search()
     def search_radios(self, phrase, media_type):
