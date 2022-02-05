@@ -14,6 +14,8 @@ class ShoutCastSkill(OVOSCommonPlaybackSkill):
                                 MediaType.MUSIC,
                                 MediaType.RADIO]
         self.skill_icon = join(dirname(__file__), "ui", "logo.png")
+
+    def initialize(self):
         if "api_key" not in self.settings:
             # pretend you didn't see this totally legit key and get your own
             # instead!
