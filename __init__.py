@@ -2,17 +2,17 @@ from os.path import join, dirname
 
 import requests
 from ovos_utils.parse import fuzzy_match, MatchStrategy
-from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, \
-    MediaType, PlaybackType, ocp_search, ocp_featured_media
+from ovos_workshop.skills.common_play import OVOSCommonPlaybackSkill, MediaType, PlaybackType, ocp_search, ocp_featured_media
 from shoutcast_api import get_stations_keywords, get_top_500
 
 
 class ShoutCastSkill(OVOSCommonPlaybackSkill):
-    def __init__(self):
-        super().__init__("ShoutCast")
-        self.supported_media = [MediaType.GENERIC,
-                                MediaType.MUSIC,
-                                MediaType.RADIO]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.supported_media = [
+            MediaType.GENERIC, MediaType.MUSIC, MediaType.RADIO
+        ]
         self.skill_icon = join(dirname(__file__), "ui", "logo.png")
 
     def initialize(self):
@@ -24,7 +24,8 @@ class ShoutCastSkill(OVOSCommonPlaybackSkill):
     def search_shoutcast(self, query, limit=100):
         response = get_stations_keywords(self.settings["api_key"],
                                          search=query,
-                                         limit=limit, br=128)
+                                         limit=limit,
+                                         br=128)
         for s in response.station:
             data = s.__dict__
             data["uri"] = f'http://yp.shoutcast.com/sbin/tunein-station.m3u?id={s.id}'
@@ -40,7 +41,8 @@ class ShoutCastSkill(OVOSCommonPlaybackSkill):
     def calc_score(self, phrase, match, idx=0, base_score=0):
         # idx represents the order from search
         score = base_score - idx  # - 1% as we go down the results list
-        score += 100 * fuzzy_match(phrase.lower(), match['name'].lower(),
+        score += 100 * fuzzy_match(phrase.lower(),
+                                   match['name'].lower(),
                                    strategy=MatchStrategy.TOKEN_SET_RATIO)
         return min(100, score)
 
@@ -120,7 +122,3 @@ class ShoutCastSkill(OVOSCommonPlaybackSkill):
                 "title": ch["name"],
                 "length": 0
             }
-
-
-def create_skill():
-    return ShoutCastSkill()
